@@ -41,13 +41,13 @@ public class MainActivity extends Activity {
             case UNKNOWN:
                 break;
             case FINGERS_SPREAD:
-            	pauseMusic();
+            	playPauseMusic();
                 break;
             case WAVE_IN:
             	skip();
                 break;
             case WAVE_OUT:
-            	skip();
+            	back();
                 break;
 	        }
 	    }
@@ -89,24 +89,19 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
     
-    public void pauseMusic(){
+    public void playPauseMusic(){
     	Context ctx = getApplicationContext();
-        AudioManager mAudioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);    
+        AudioManager mAudioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+        Intent mediaIntent = new Intent("com.android.music.musicservicecommand");
         if (mAudioManager.isMusicActive()) {
-            Intent mediaIntent = new Intent("com.android.music.musicservicecommand");
             mediaIntent.putExtra("command", "pause");
-            ctx.sendBroadcast(mediaIntent);
+        } else {
+        	mediaIntent.putExtra("command", "play");
         }
+        ctx.sendBroadcast(mediaIntent);
 
     }
-    
-    public void playMusic(){
-    	Context ctx = getApplicationContext();
-        AudioManager mAudioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);    
-        Intent mediaIntent = new Intent("com.android.music.musicservicecommand");
-        mediaIntent.putExtra("command", "play");
-        sendBroadcast(mediaIntent);
-    }
+
     
     public void skip(){
     	Context ctx = getApplicationContext();
@@ -115,6 +110,16 @@ public class MainActivity extends Activity {
         mediaIntent.putExtra("command", "next");
         sendBroadcast(mediaIntent);
     }
+    
+    public void back(){
+    	Context ctx = getApplicationContext();
+        AudioManager mAudioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);    
+        Intent mediaIntent = new Intent("com.android.music.musicservicecommand");
+        mediaIntent.putExtra("command", "previous");
+        sendBroadcast(mediaIntent);
+    }
+    
+    
     
     public void connect(View view){
         Context context = getApplicationContext();
