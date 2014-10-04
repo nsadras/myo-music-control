@@ -21,40 +21,50 @@ import com.thalmic.myo.scanner.ScanActivity;
 
 public class MainActivity extends Activity {
 
-	public Hub hub;
-	private DeviceListener mListener; 
+	private DeviceListener mListener = new AbstractDeviceListener() {
+		@Override
+	    public void onConnect(Myo myo, long timestamp) {
+	        //Toast.makeText(mContext, "Myo Connected!", Toast.LENGTH_SHORT).show();
+			Log.d("pose", "connected");
+	    }
+
+	    @Override
+	    public void onDisconnect(Myo myo, long timestamp) {
+	        //Toast.makeText(mContext, "Myo Disconnected!", Toast.LENGTH_SHORT).show();
+	    }
+
+	    @Override
+	    public void onPose(Myo myo, long timestamp, Pose pose) {
+	        Log.d("pose", "Pose: " + pose);
+
+	        switch (pose) {
+            case UNKNOWN:
+                break;
+            case FINGERS_SPREAD:
+            	pauseMusic();
+                break;
+            case WAVE_IN:
+            	skip();
+                break;
+            case WAVE_OUT:
+            	skip();
+                break;
+	        }
+	    }
+	};
+	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        hub = Hub.getInstance();
+        Hub hub = Hub.getInstance();
         if (!hub.init(this)) {
             Log.e("test", "Could not initialize the Hub.");
             finish();
             return;
         } 
         
-        mListener = new AbstractDeviceListener() {
-    	    Context mContext = getApplicationContext();
-    		@Override
-    	    public void onConnect(Myo myo, long timestamp) {
-    	        Toast.makeText(mContext, "Myo Connected!", Toast.LENGTH_SHORT).show();
-    	    }
-
-    	    @Override
-    	    public void onDisconnect(Myo myo, long timestamp) {
-    	        Toast.makeText(mContext, "Myo Disconnected!", Toast.LENGTH_SHORT).show();
-    	    }
-
-    	    @Override
-    	    public void onPose(Myo myo, long timestamp, Pose pose) {
-    	        Log.d("pose", "Pose: " + pose);
-
-    	        //TODO: Do something awesome.
-    	    }
-    	};
-    	
     	hub.addListener(mListener);
         
     }
@@ -79,7 +89,7 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
     
-    public void pauseMusic(View view){
+    public void pauseMusic(){
     	Context ctx = getApplicationContext();
         AudioManager mAudioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);    
         if (mAudioManager.isMusicActive()) {
@@ -90,7 +100,7 @@ public class MainActivity extends Activity {
 
     }
     
-    public void playMusic(View view){
+    public void playMusic(){
     	Context ctx = getApplicationContext();
         AudioManager mAudioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);    
         Intent mediaIntent = new Intent("com.android.music.musicservicecommand");
@@ -98,7 +108,7 @@ public class MainActivity extends Activity {
         sendBroadcast(mediaIntent);
     }
     
-    public void skip(View view){
+    public void skip(){
     	Context ctx = getApplicationContext();
         AudioManager mAudioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);    
         Intent mediaIntent = new Intent("com.android.music.musicservicecommand");

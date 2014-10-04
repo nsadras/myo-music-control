@@ -9,7 +9,7 @@
     tools:context="com.nitinsadras.myomusiccontrol.MainActivity" >
 
     
-    <Button
+    <!--  <Button
     	android:layout_width="wrap_content"
     	android:layout_height="wrap_content"
     	android:id="@+id/button_pause"
@@ -31,14 +31,13 @@
     	android:id="@+id/button_skip"
     	android:onClick="skip"
     	android:layout_below="@id/button_play"
-    	android:text=">>"/>
+    	android:text=">>"/> -->
     
      <Button
     	android:layout_width="wrap_content"
     	android:layout_height="wrap_content"
     	android:id="@+id/button_connect"
     	android:onClick="connect"
-    	android:layout_below="@id/button_play"
     	android:layout_alignParentRight="true"
     	android:text="connect"/>
 
