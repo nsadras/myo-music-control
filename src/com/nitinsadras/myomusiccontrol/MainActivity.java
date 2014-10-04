@@ -9,19 +9,20 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.thalmic.myo.AbstractDeviceListener;
 import com.thalmic.myo.DeviceListener;
 import com.thalmic.myo.Hub;
 import com.thalmic.myo.Myo;
 import com.thalmic.myo.Pose;
+import com.thalmic.myo.Quaternion;
 import com.thalmic.myo.scanner.ScanActivity;
 
 
 public class MainActivity extends Activity {
 
 	private DeviceListener mListener = new AbstractDeviceListener() {
+		boolean volumeMode = false;
 		@Override
 	    public void onConnect(Myo myo, long timestamp) {
 	        //Toast.makeText(mContext, "Myo Connected!", Toast.LENGTH_SHORT).show();
@@ -35,21 +36,54 @@ public class MainActivity extends Activity {
 
 	    @Override
 	    public void onPose(Myo myo, long timestamp, Pose pose) {
-	        Log.d("pose", "Pose: " + pose);
+	        Log.i("pose", "Pose: " + pose);
 
 	        switch (pose) {
             case UNKNOWN:
                 break;
             case FINGERS_SPREAD:
-            	playPauseMusic();
+            	volumeMode = true;
                 break;
+            case REST:
+            	volumeMode = false;
+            	break;
+            case THUMB_TO_PINKY:
+            	if(volumeMode){
+            		volumeMode = false;
+            	} else {
+            		playPauseMusic();
+            	}
+            	break;
             case WAVE_IN:
-            	skip();
+            	back();
+            	volumeMode = false;
                 break;
             case WAVE_OUT:
-            	back();
+            	skip();
+            	volumeMode = false;
                 break;
 	        }
+	        try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// nothing to see here, move along
+			}
+	    }
+	    
+	    @Override
+        public void onOrientationData(Myo myo, long timestamp, Quaternion rotation) {
+	    	float roll = (float) Math.toDegrees(Quaternion.roll(rotation));
+            float pitch = (float) Math.toDegrees(Quaternion.pitch(rotation));
+            float yaw = (float) Math.toDegrees(Quaternion.yaw(rotation));
+            
+            if(volumeMode){
+            	Log.i("rotation", Float.toString(roll));
+            	AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+            	int volume = Math.min((int)((roll + 60)*(10.0/80.0)), 10);
+            	Log.i("volume", Integer.toString(volume));
+            	audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0); // 15 max, cap at 10/11
+            	//-60 to 20
+            }
 	    }
 	};
 	
@@ -106,17 +140,21 @@ public class MainActivity extends Activity {
     public void skip(){
     	Context ctx = getApplicationContext();
         AudioManager mAudioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);    
-        Intent mediaIntent = new Intent("com.android.music.musicservicecommand");
-        mediaIntent.putExtra("command", "next");
-        sendBroadcast(mediaIntent);
+        if (mAudioManager.isMusicActive()){
+        	Intent mediaIntent = new Intent("com.android.music.musicservicecommand");
+        	mediaIntent.putExtra("command", "next");
+        	sendBroadcast(mediaIntent);
+        }
     }
     
     public void back(){
     	Context ctx = getApplicationContext();
-        AudioManager mAudioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);    
-        Intent mediaIntent = new Intent("com.android.music.musicservicecommand");
-        mediaIntent.putExtra("command", "previous");
-        sendBroadcast(mediaIntent);
+        AudioManager mAudioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);  
+        if(mAudioManager.isMusicActive()){
+        	Intent mediaIntent = new Intent("com.android.music.musicservicecommand");
+        	mediaIntent.putExtra("command", "previous");
+        	sendBroadcast(mediaIntent);
+        }
     }
     
     
