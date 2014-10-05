@@ -25,29 +25,37 @@ public class MainActivity extends Activity {
 		boolean volumeMode = false;
 		@Override
 	    public void onConnect(Myo myo, long timestamp) {
-	        //Toast.makeText(mContext, "Myo Connected!", Toast.LENGTH_SHORT).show();
 			Log.d("pose", "connected");
 	    }
 
 	    @Override
 	    public void onDisconnect(Myo myo, long timestamp) {
-	        //Toast.makeText(mContext, "Myo Disconnected!", Toast.LENGTH_SHORT).show();
+	    	Log.d("pose", "disconnected");
 	    }
 
 	    @Override
 	    public void onPose(Myo myo, long timestamp, Pose pose) {
 	        Log.i("pose", "Pose: " + pose);
+	        boolean sleep = true;
 
 	        switch (pose) {
             case UNKNOWN:
                 break;
             case FINGERS_SPREAD:
             	volumeMode = true;
+            	sleep = false;
                 break;
             case REST:
             	volumeMode = false;
             	break;
             case THUMB_TO_PINKY:
+            	if(volumeMode){
+            		volumeMode = false;
+            	} else {
+            		playPauseMusic();
+            	}
+            	break;
+            case FIST:
             	if(volumeMode){
             		volumeMode = false;
             	} else {
@@ -64,8 +72,11 @@ public class MainActivity extends Activity {
                 break;
 	        }
 	        try {
-				Thread.sleep(1000);
+	        	if(sleep){
+	        		Thread.sleep(500);
+	        	}
 			} catch (InterruptedException e) {
+				Log.d("sleep", "sleep failed wtf");
 				// nothing to see here, move along
 			}
 	    }
